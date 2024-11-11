@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>Free Invoice Generator | Create Professional Invoices Online</title>
+    <meta name="description" content="Create professional invoices for free with our easy-to-use online invoice generator. No sign-up required, instant PDF download, and customizable templates.">
+    <meta name="keywords" content="free invoice generator, invoice maker, create invoice online, free invoice template, billing software, invoice generator, invoice creator, invoice creator online, invoice creator free, invoice creator pdf, invoice creator download, invoice creator template, invoice creator online free, invoice creator online pdf, invoice creator online download, invoice creator online template">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+
+    <!-- Open Graph Meta Tags for Social Sharing -->
+    <meta property="og:title" content="Free Invoice Generator | Create Professional Invoices Online">
+    <meta property="og:description" content="Generate professional invoices instantly with our free online tool. No registration required.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com">
+    <meta property="og:image" content="https://yourdomain.com/path-to-preview-image.jpg">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Invoice Generator">
+    <meta name="twitter:description" content="Create professional invoices for free online. No registration needed.">
+    <meta name="twitter:image" content="https://yourdomain.com/path-to-preview-image.jpg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://yourdomain.com">
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "Free Invoice Generator",
+          "description": "Create professional invoices online for free",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Any",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "featureList": [
+            "Custom invoice templates",
+            "PDF download",
+            "Multiple currency support",
+            "Tax calculation",
+            "Logo upload"
+          ]
+        }
+        </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: #f5f5f5; padding: 1rem; }
+        .container { max-width: 900px; margin: 0 auto; background-color: white; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { text-align: center; margin-bottom: 1rem; }
+        .header h1 { font-size: 2rem; font-family: Georgia, serif; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+        .date-info { color: #666; margin-bottom: 0.5rem; }
+        .billing-info { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1rem; }
+        .billing-section h2 { color: #666; margin-bottom: 0.5rem; }
+        .input-group { margin-bottom: 0.5rem; }
+        input, textarea, select { width: 100%; padding: 0.5rem 0; border: none; border-bottom: 1px solid #ddd; outline: none; transition: border-color 0.3s; }
+        input:focus, textarea:focus, select:focus { border-bottom-color: #333; }
+        textarea { resize: vertical; min-height: 50px; }
+        
+        /* Responsive table styles */
+        .table-responsive {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        table { 
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        th { 
+            background-color: #111; 
+            color: white; 
+            padding: 0.75rem; 
+            text-align: left;
+        }
+        
+        td { 
+            padding: 0.75rem; 
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+        
+        td:first-child {
+            width: 40%;
+        }
+        
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {
+            width: 15%;
+        }
+        
+        td:last-child {
+            width: 10%;
+        }
+        
+        .table-input { 
+            background: transparent; 
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .button { background-color: #111; color: white; padding: 0.75rem 1.5rem; border: none; cursor: pointer; transition: background-color 0.3s; }
+        .button:hover { background-color: #333; }
+        .button.outline { background-color: transparent; border: 1px solid #111; color: #111; }
+        .table-actions { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
+        .total-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 250px;
+        }
+        .tax-settings {
+            background-color: #f9f9f9;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .total-display { 
+            background-color: #111; 
+            color: white; 
+            padding: 1rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .total-display #totalAmount,
+        #totalPreview {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        .footer { text-align: center; margin-top: 1rem; }
+        .footer p { font-family: Georgia, serif; font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .social-buttons { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .social-button { background: none; border: none; cursor: pointer; padding: 0.5rem; color: #111; }
+        .delete-button { background: none; border: none; cursor: pointer; color: #666; padding: 0.5rem; }
+        .delete-button:hover { color: #111; }
+        .terms-conditions {
+            margin: 1rem 0;
+        }
+        .terms-conditions input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            margin-top: 0.5rem;
+        }
+
+        .currency-selector {
+            margin: 0.5rem 0;
+            width: 180px;
+        }
+
+        @media (max-width: 768px) { 
+            .billing-info { 
+                grid-template-columns: 1fr; 
+                gap: 1rem; 
+            }
+            .container {
+                padding: 1rem;
+            }
+            .total-display {
+                padding: 0.75rem;
+                font-size: 1.1rem;
+            }
+            .table-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            td, th {
+                padding: 0.5rem;
+            }
+            
+            td:first-child {
+                width: 35%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            td:first-child {
+                width: 30%;
+            }
+            
+            td:nth-child(2),
+            td:nth-child(3),
+            td:nth-child(4) {
+                width: 20%;
+            }
+            
+            td:last-child {
+                width: 10%;
+            }
+        }
+        
+        #invoicePreview {
+            background-color: white;
+            padding: 30px;
+            margin: 1rem auto;
+            max-width: 900px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .invoice-title {
+            font-size: 2rem;
+            font-family: Georgia, serif;
+        }
+        
+        .address-block {
+            margin-bottom: 1rem;
+        }
+        
+        .address-block h3 {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .thank-you-note {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .logo-upload {
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .logo-preview {
+            max-width: 180px;
+            max-height: 90px;
+            margin: 0.5rem 0;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoicePreview, #invoicePreview * {
+                visibility: visible;
+            }
+            #invoicePreview {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <main class="container">
+        <header>
+            <h1 style="text-align: center;">Free Invoice Generator</h1>
+            <p class="subtitle">Create professional invoices in seconds - No sign up required!</p>
+        </header>
+        <!-- Add relevant section headings -->
+        <section class="features-section">
+            <h2>Key Features</h2>
+            <ul class="features-list">
+                <li>✓ 100% Free - No Hidden Charges</li>
+                <li>✓ Professional PDF Format</li>
+                <li>✓ Multiple Currency Support</li>
+                <li>✓ Custom Logo Upload</li>
+                <li>✓ Automatic Calculations</li>
+                <li>✓ No Registration Required</li>
+            </ul>
+        </section>
+        </main>
+    <div class="container">
+        <div class="header">
+            <div class="logo-upload">
+                <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(event)" style="display: none">
+                <button class="button outline" onclick="document.getElementById('logoInput').click()">Upload Logo</button>
+                <img id="logoPreview" class="logo-preview" style="display: none">
+            </div>
+            <h1>INVOICE</h1>
+            <div class="date-info">
+                <div>Issued: <span id="issueDate"></span></div>
+                <div>Due: On Receipt</div>
+            </div>
+            <div class="currency-selector">
+                <select id="currencySelect" onchange="updateCurrency()">
+                    <option value="USD">USD ($)</option>
+                    <option value="USD">INR (₹)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="JPY">JPY (¥)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                </select>
+            </div>
+        </div>
+        <div class="billing-info">
+            <div class="billing-section">
+                <h2>Issued to:</h2>
+                <div class="input-group">
+                    <input type="text" id="toName" placeholder="Name">
+                </div>
+                <div class="input-group">
+                    <textarea id="toAddress" placeholder="Address"></textarea>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="toEmail" placeholder="Email">
+                </div>
+            </div>
+            <div class="billing-section">
+                <h2>Invoiced from:</h2>
+                <div class="input-group">
+                    <input type="text" id="fromName" placeholder="Name">
+                </div>
+                <div class="input-group">
+                    <textarea id="fromAddress" placeholder="Address"></textarea>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="fromEmail" placeholder="Email">
+                </div>
+                <div class="input-group">
+                    <input type="phone" id="fromPhone" placeholder="Phone Number">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="table-actions">
+            <button class="button outline" id="addItemButton">Add Item</button>
+            <div class="total-section">
+                <div class="tax-settings">
+                    <label for="taxRate">Tax Rate (%)</label>
+                    <input type="number" id="taxRate" min="0" max="100" step="0.1" value="0" onchange="updateTaxAndTotal()">
+                </div>
+                <div class="total-display">
+                    Subtotal: <span id="subtotalAmount">0.00</span><br>
+                    Tax: <span id="taxAmount">0.00</span><br>
+                    Total: <span id="totalAmount">0.00</span>
+                </div>
+            </div>
+        </div>
+       
+        <div class="terms-conditions">
+            <h2>Terms & Conditions Link:</h2>
+            <input type="url" id="termsConditions" placeholder="Paste your terms & conditions URL here">
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for your support!</p>
+            <button class="button outline" id="previewButton">Preview Invoice</button>
+            <button class="button" onclick="generatePDF()">Download PDF</button>
+        </div>
+        
+        <div id="invoicePreview" style="display: none;">
+            <!-- Preview content here -->
+            <div class="invoice-header">
+                <div>
+                    <img id="logoPreviewInvoice" class="logo-preview" style="display: none">
+                    <div class="invoice-title">INVOICE</div>
+                </div>
+                <div class="invoice-details">
+                    <div><strong>Date:</strong> <span id="datePreview"></span></div>
+                    <div><strong>Due:</strong> On Receipt</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col address-block">
+                    <h3>From:</h3>
+                    <div id="fromNamePreview"></div>
+                    <div id="fromAddressPreview"></div>
+                    <div id="fromEmailPreview"></div>
+                    <div id="fromPhonePreview"></div>
+                </div>
+                <div class="col address-block">
+                    <h3>Bill To:</h3>
+                    <div id="toNamePreview"></div>
+                    <div id="toAddressPreview"></div>
+                    <div id="toEmailPreview"></div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsPreview"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Subtotal:</strong></td>
+                            <td id="subtotalPreview"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Tax:</strong></td>
+                            <td id="taxPreview"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                            <td id="totalPreview"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="terms-conditions">
+                <h3>Terms & Conditions:</h3>
+                <div id="termsPreview"></div>
+            </div>
+            <div class="thank-you-note">
+                <p>Thank you for your business! ❤️</p>
+            </div>
+        </div>
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <details>
+                <summary>Is this invoice generator really free?</summary>
+                <p>Yes, our invoice generator is completely free to use. There are no hidden charges or subscription fees.</p>
+            </details>
+            <details>
+                <summary>Can I download my invoice as PDF?</summary>
+                <p>Yes, you can download your invoice as a professional PDF document with a single click.</p>
+            </details>
+            <details>
+                <summary>Do I need to create an account?</summary>
+                <p>No, you can create and download invoices instantly without any registration or account creation.</p>
+            </details>
+        </section>
+        <footer>
+            <p>Create professional invoices for free with our online invoice generator. Perfect for freelancers, small businesses, and entrepreneurs.</p>
+            <!-- Add relevant links -->
+            <nav class="footer-links">
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms">Terms of Use</a>
+                <a href="/contact">Contact Us</a>
+            </nav>
+        </footer>
+    </div>
+    
+       
+  
+
+    <script>
+        let items = [];
+        let logoImage = null;
+        let selectedCurrency = 'USD';
+        let currencySymbols = {
+            'IND': '₹',
+            'USD': '$',
+            'EUR': '€', 
+            'GBP': '£',
+            'JPY': '¥',
+            'CAD': '$',
+            'AUD': '$'
+        };
+
+        function updateCurrency() {
+            selectedCurrency = document.getElementById('currencySelect').value;
+            renderItems();
+            updatePreview();
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoImage = e.target.result;
+                    const preview = document.getElementById('logoPreview');
+                    const previewInvoice = document.getElementById('logoPreviewInvoice');
+                    preview.src = logoImage;
+                    previewInvoice.src = logoImage;
+                    preview.style.display = 'block';
+                    previewInvoice.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateTaxAndTotal() {
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const subtotal = calculateSubtotal();
+            const tax = (subtotal * taxRate / 100).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+            
+            document.getElementById('subtotalAmount').textContent = `${currencySymbols[selectedCurrency]}${subtotal}`;
+            document.getElementById('taxAmount').textContent = `${currencySymbols[selectedCurrency]}${tax}`;
+            document.getElementById('totalAmount').textContent = `${currencySymbols[selectedCurrency]}${total}`;
+        }
+
+        document.getElementById('issueDate').textContent = new Date().toISOString().split('T')[0];
+        document.getElementById('addItemButton').addEventListener('click', addItem);
+        addItem();
+
+        document.getElementById('previewButton').addEventListener('click', updatePreview);
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Set font to match website
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11); // Base font size
+            
+            // Add logo if exists
+            if (logoImage) {
+                const img = new Image();
+                img.src = logoImage;
+                const aspectRatio = img.width / img.height;
+                const maxWidth = 50;
+                const maxHeight = 25;
+                let width = maxWidth;
+                let height = width / aspectRatio;
+                
+                if (height > maxHeight) {
+                    height = maxHeight;
+                    width = height * aspectRatio;
+                }
+                
+                doc.addImage(logoImage, 'JPEG', 15, 15, width, height);
+            }
+            
+            // Add title with Georgia font
+            doc.setFont("georgia", "normal");
+            doc.setFontSize(24);
+            doc.text("INVOICE", 105, 30, { align: "center" });
+            
+            // Reset to base font
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            
+            // Add date
+            doc.text(`Date: ${document.getElementById('issueDate').textContent}`, 15, 45);
+            doc.text("Due: On Receipt", 15, 52);
+            
+            // Add billing info
+            doc.setFontSize(13);
+            doc.text("From:", 15, 65);
+            doc.setFontSize(11);
+            doc.text(document.getElementById('fromName').value || '', 15, 72);
+            doc.text(document.getElementById('fromAddress').value || '', 15, 79);
+            doc.text(document.getElementById('fromEmail').value || '', 15, 86);
+            doc.text(document.getElementById('fromPhone').value || '', 15, 93);
+            
+            doc.setFontSize(13);
+            doc.text("Bill To:", 105, 65);
+            doc.setFontSize(11);
+            doc.text(document.getElementById('toName').value || '', 105, 72);
+            doc.text(document.getElementById('toAddress').value || '', 105, 79);
+            doc.text(document.getElementById('toEmail').value || '', 105, 86);
+            
+            // Add items table with matching styles
+            const headers = [["Description", "Quantity", "Unit Price", "Total"]];
+            const data = items.map(item => [
+                item.description,
+                item.quantity,
+                `${currencySymbols[selectedCurrency]}${item.price}`,
+                `${currencySymbols[selectedCurrency]}${item.total}`
+            ]);
+            
+            doc.autoTable({
+                startY: 100,
+                head: headers,
+                body: data,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [17, 17, 17],
+                    fontSize: 11,
+                    fontStyle: 'normal',
+                    font: 'helvetica'
+                },
+                styles: { 
+                    fontSize: 11,
+                    font: 'helvetica',
+                    cellPadding: 5
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { cellWidth: 'auto' },
+                    2: { cellWidth: 'auto' },
+                    3: { cellWidth: 'auto' }
+                }
+            });
+            
+            // Add totals
+            const finalY = doc.lastAutoTable.finalY + 10;
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const subtotal = calculateSubtotal();
+            const tax = (subtotal * taxRate / 100).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+            
+            doc.text(`Subtotal: ${currencySymbols[selectedCurrency]}${subtotal}`, 140, finalY);
+            doc.text(`Tax (${taxRate}%): ${currencySymbols[selectedCurrency]}${tax}`, 140, finalY + 7);
+            doc.setFontSize(13);
+            doc.text(`Total: ${currencySymbols[selectedCurrency]}${total}`, 140, finalY + 14);
+            
+            // Add terms
+            const termsUrl = document.getElementById('termsConditions').value;
+            if (termsUrl) {
+                doc.setFontSize(11);
+                doc.text("Terms & Conditions:", 15, finalY + 30);
+                doc.setTextColor(0, 0, 255);
+                doc.textWithLink("View Terms & Conditions", 15, finalY + 37, { url: termsUrl });
+                doc.setTextColor(0, 0, 0);
+            }
+            
+            // Add thank you note with Georgia font
+            doc.setFont("georgia", "normal");
+            doc.setFontSize(14);
+            doc.text("Thank you for your business! :)", 105, finalY + 45, { align: "center" });
+            
+            // Save PDF
+            doc.save('invoice.pdf');
+        }
+
+        function updatePreview() {
+            document.getElementById('datePreview').textContent = document.getElementById('issueDate').textContent;
+            
+            document.getElementById('fromNamePreview').textContent = document.getElementById('fromName').value || '';
+            document.getElementById('fromAddressPreview').textContent = document.getElementById('fromAddress').value || '';
+            document.getElementById('fromEmailPreview').textContent = document.getElementById('fromEmail').value || '';
+            document.getElementById('fromPhonePreview').textContent = document.getElementById('fromPhone').value || '';
+            
+            document.getElementById('toNamePreview').textContent = document.getElementById('toName').value || '';
+            document.getElementById('toAddressPreview').textContent = document.getElementById('toAddress').value || '';
+            document.getElementById('toEmailPreview').textContent = document.getElementById('toEmail').value || '';
+            
+            const itemsPreview = document.getElementById('itemsPreview');
+            itemsPreview.innerHTML = '';
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.quantity || '0'}</td>
+                    <td>${currencySymbols[selectedCurrency]}${item.price || '0.00'}</td>
+                    <td>${currencySymbols[selectedCurrency]}${item.total}</td>
+                `;
+                itemsPreview.appendChild(tr);
+            });
+            
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const subtotal = calculateSubtotal();
+            const tax = (subtotal * taxRate / 100).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+            
+            document.getElementById('subtotalPreview').textContent = `${currencySymbols[selectedCurrency]}${subtotal}`;
+            document.getElementById('taxPreview').textContent = `${currencySymbols[selectedCurrency]}${tax}`;
+            document.getElementById('totalPreview').textContent = `${currencySymbols[selectedCurrency]}${total}`;
+            
+            const termsUrl = document.getElementById('termsConditions').value;
+            document.getElementById('termsPreview').innerHTML = termsUrl ? `<a href="${termsUrl}" target="_blank">View Terms & Conditions</a>` : '';
+            
+            document.getElementById('invoicePreview').style.display = 'block';
+            document.getElementById('invoicePreview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('fromPhone').addEventListener('input', function(e) {
+            let input = e.target;
+            let value = input.value;
+            value = value.replace(/[^\d+]/g, '');
+            if (value.lastIndexOf('+') > 0) {
+                value = value.slice(0, value.lastIndexOf('+')) + value.slice(value.lastIndexOf('+') + 1);
+            }
+            if (value.length > 12) {
+                value = value.slice(0, 15);
+            }
+            input.value = value;
+        });
+
+        function addItem() {
+            const item = { description: '', price: '', quantity: '', total: '0.00' };
+            items.push(item);
+            renderItems();
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            if (items.length === 0) {
+                addItem();
+            }
+            renderItems();
+        }
+
+        function updateItem(index, field, value) {
+            items[index][field] = value;
+            if (field === 'price' || field === 'quantity') {
+                const price = parseFloat(items[index].price) || 0;
+                const quantity = parseFloat(items[index].quantity) || 0;
+                items[index].total = (price * quantity).toFixed(2);
+            }
+            renderItems();
+        }
+
+        function calculateSubtotal() {
+            return items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0).toFixed(2);
+        }
+        function sanitizeInput(input) {
+  return input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Use this function when setting values:
+document.getElementById('fromName').value = sanitizeInput(fromName);
+
+        function renderItems() {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            items.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" class="table-input" value="${item.description}" onchange="updateItem(${index}, 'description', this.value)" placeholder="Description"></td>
+                    <td><input type="number" class="table-input" value="${item.price}" onchange="updateItem(${index}, 'price', this.value)" placeholder="${currencySymbols[selectedCurrency]}0.00"></td>
+                    <td><input type="number" class="table-input" value="${item.quantity}" onchange="updateItem(${index}, 'quantity', this.value)" placeholder="0"></td>
+                    <td>${currencySymbols[selectedCurrency]}${item.total}</td>
+                    <td><button class="delete-button" onclick="removeItem(${index})">🗑️</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateTaxAndTotal();
+        }
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyBViDUo8-HmkZXKBokbcjNQCLAOxm4tBTw",
+          authDomain: "freeinvoicegen.firebaseapp.com",
+          projectId: "freeinvoicegen",
+          storageBucket: "freeinvoicegen.firebasestorage.app",
+          messagingSenderId: "662968884328",
+          appId: "1:662968884328:web:f33499260953af86f6efdd",
+          measurementId: "G-SK5DC36QFV"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+    
+   
+</body>
+</html>
